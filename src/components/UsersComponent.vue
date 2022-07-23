@@ -1,19 +1,17 @@
 <template>
   <div class="users-component">
-    <div
-      class="friend"
-      v-for="user in users"
-      :key="user.id"
-      @click="test(user.username, user.img)"
-    >
+    <div class="friend" v-for="user in users" :key="user.id">
       <!-- online container -->
       <div
         class="img-container"
         v-if="user.username !== username && user.status === 'online'"
+        @click="showUserInfo(user.username, user.img)"
       >
-        <img :src="user.img" alt="" class="online" />
-        <span class="green-icon"></span>
-        <span class="text-white">{{ user.username }}</span>
+        <div class="img-icon">
+          <img :src="user.img" alt="" class="online" />
+          <span class="green-icon"></span>
+        </div>
+        <span class="text-white username">{{ user.username }}</span>
       </div>
       <!-- end online container -->
 
@@ -21,9 +19,12 @@
       <div
         class="img-container2"
         v-else-if="user.status === 'offline' && user.username !== username"
+        @click="showUserInfo(user.username, user.img)"
       >
-        <img :src="user.img" alt="" class="offline" />
-        <span class="red-icon"></span>
+        <div class="img-icon">
+          <img :src="user.img" alt="" class="offline" />
+          <span class="gray-icon"></span>
+        </div>
         <span class="text-white">{{ user.username }}</span>
       </div>
       <!-- end offline container -->
@@ -36,7 +37,7 @@ export default {
   name: "UsersComponent",
   props: ["users", "username"],
   methods: {
-    test(username, img) {
+    showUserInfo(username, img) {
       this.$emit("showUserInfo", { username, img });
     },
   },
@@ -48,8 +49,8 @@ export default {
   .friend {
     img {
       border-radius: 50%;
-      height: 80px;
-      width: 80px;
+      height: 60px;
+      width: 60px;
       margin-right: 10px;
     }
 
@@ -59,7 +60,7 @@ export default {
     }
 
     .green-icon,
-    .red-icon {
+    .gray-icon {
       position: absolute;
       border-radius: 50%;
       bottom: 0;
@@ -71,21 +72,22 @@ export default {
 
     .img-container,
     .img-container2 {
-      position: relative;
+      // border: 2px solid;
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      gap: 1px;
       margin-bottom: 10px;
       cursor: pointer;
-      width: fit-content;
-    }
-
-    .img-container {
-      .green-icon {
-        background-color: green;
-      }
-    }
-
-    .img-container2 {
-      .red-icon {
-        background-color: gray;
+      .img-icon {
+        position: relative;
+        // border: 1px solid;
+        .green-icon {
+          background-color: green;
+        }
+        .gray-icon {
+          background-color: gray;
+        }
       }
     }
   }

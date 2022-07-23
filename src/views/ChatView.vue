@@ -57,10 +57,10 @@
           </div>
         </div>
         <div class="send-message">
-          <div class="send-message-content">
+          <div class="send-message-content col-11 col-xl-4">
             <textarea
               type="text"
-              class="shadow-none col-12 col-md-6"
+              class="shadow-none"
               placeholder="Your Messages..."
               v-model="message"
               @keyup.enter="sendMessage"
@@ -108,15 +108,15 @@ export default {
 
   methods: {
     showUserInfo(userObject) {
-      if ($(".developer").css("left") === "1000px") {
+      if ($(".developer").css("display") === "none") {
         $("#user-image").attr("src", userObject.img);
         $("#user-name-info").text(userObject.username);
-        $(".developer").css("left", "0px");
+        $(".developer").css("display", "unset");
         $(".messages").css("grid-column-end", 5);
         $(".head").css("grid-column-end", 5);
         $(".send-message").css("grid-column-end", 5);
       } else {
-        $(".developer").css("left", "1000px");
+        $(".developer").css("display", "none");
         $(".messages").css("grid-column-end", 6);
         $(".head").css("grid-column-end", 6);
         $(".send-message").css("grid-column-end", 6);
@@ -184,6 +184,7 @@ export default {
     // border: 2px solid;
 
     .grid {
+      // border: 2px solid;
       display: grid;
       min-height: 94vh;
       grid-template-columns: repeat(5, 1fr);
@@ -276,8 +277,7 @@ export default {
       }
 
       .developer {
-        position: relative;
-        left: 1000px;
+        display: none;
         grid-column-start: 5;
         grid-column-end: 6;
         grid-row-start: 1;
@@ -311,7 +311,7 @@ export default {
           align-items: center;
           position: relative;
           margin: 0 auto;
-          width: 50%;
+          // width: 50%;
           height: 50px;
           i {
             position: absolute;
@@ -363,4 +363,12 @@ export default {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+// @media screen and(max-width:768px) {
+//   .grid {
+//     .people {
+//       padding: 0px;
+//     }
+//   }
+// }
 </style>
