@@ -7,7 +7,10 @@
         <!-- people start -->
         <div class="people">
           <div class="people-content">
-            <h3 class="text-white">Chat Room Members</h3>
+            <div class="d-flex justify-content-between align-items-center">
+              <h3 class="text-white">Chat Room Members</h3>
+              <button @click="togglePeople" class="close-people-btn">X</button>
+            </div>
             <input
               type="text"
               placeholder="Search..."
@@ -26,10 +29,15 @@
         </div>
         <!-- people end -->
         <div class="head">
-          <div class="head-content">
-            <h2 class="text-white p-3" style="letter-spacing: 5px">
-              Chat Room
-            </h2>
+          <div
+            class="head-content d-flex justify-content-between align-items-center p-3"
+          >
+            <h2 class="text-white" style="letter-spacing: 0px">Chat Room</h2>
+            <div class="d-sm-none bars" @click="togglePeople">
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+            </div>
           </div>
         </div>
         <div class="messages">
@@ -107,6 +115,9 @@ export default {
   },
 
   methods: {
+    togglePeople() {
+      $(".people").toggleClass("toggle-people");
+    },
     showUserInfo(userObject) {
       if ($(".developer").css("display") === "none") {
         $("#user-image").attr("src", userObject.img);
@@ -177,14 +188,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.toggle-people {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0 !important;
+  z-index: 3;
+}
 .chat {
   position: relative;
   .chat-container {
-    // margin-top: 10px;
-    // border: 2px solid;
-
     .grid {
-      // border: 2px solid;
       display: grid;
       min-height: 94vh;
       grid-template-columns: repeat(5, 1fr);
@@ -199,8 +213,15 @@ export default {
         grid-row-end: 6;
         background-color: #aeafe8;
         padding: 40px;
-
+        transition: all 0.3s ease-in-out;
         .people-content {
+          .close-people-btn {
+            border: none;
+            background: unset;
+            color: #fff;
+            font-size: 25px;
+            display: none;
+          }
           input {
             margin: 30px 0px;
           }
@@ -222,6 +243,17 @@ export default {
         background-color: #43318d8c;
         .head-content {
           flex: 1;
+
+          .bars {
+            cursor: pointer;
+            .bar {
+              display: block;
+              height: 3px;
+              background-color: #fff;
+              width: 35px;
+              margin: 6px 0;
+            }
+          }
         }
       }
 
@@ -364,11 +396,25 @@ export default {
   background: #555;
 }
 
-// @media screen and(max-width:768px) {
-//   .grid {
-//     .people {
-//       padding: 0px;
-//     }
-//   }
-// }
+@media screen and (max-width: 575px) {
+  .grid {
+    overflow-x: hidden;
+    .head,
+    .messages,
+    .send-message {
+      grid-column-start: 1 !important;
+    }
+
+    .people {
+      position: absolute;
+      left: -1000px;
+
+      .people-content {
+        .close-people-btn {
+          display: block !important;
+        }
+      }
+    }
+  }
+}
 </style>
