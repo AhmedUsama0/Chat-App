@@ -1,4 +1,5 @@
 <template>
+  <!-- /* eslint-disable */ -->
   <div class="chat">
     <LoadingSpinner />
     <NavBar @change="showLoadingSpinner" />
@@ -11,17 +12,27 @@
               <h3 class="text-white">Chat Room Members</h3>
               <button @click="togglePeople" class="close-people-btn">X</button>
             </div>
-            <input type="text" placeholder="Search..." class="form-control shadow-none border-0" />
+            <input
+              type="text"
+              placeholder="Search..."
+              class="form-control shadow-none border-0"
+            />
             <!-- friends start -->
             <div class="friends-content">
-              <UsersComponent @showUserInfo="showUserInfo" :users="users" :username="username" />
+              <UsersComponent
+                @showUserInfo="showUserInfo"
+                :users="users"
+                :username="username"
+              />
             </div>
             <!-- friends end -->
           </div>
         </div>
         <!-- people end -->
         <div class="head">
-          <div class="head-content d-flex justify-content-between align-items-center p-3">
+          <div
+            class="head-content d-flex justify-content-between align-items-center p-3"
+          >
             <h2 class="text-white" style="letter-spacing: 0px">Chat Room</h2>
             <div class="d-lg-none bars" @click="togglePeople">
               <div class="bar"></div>
@@ -32,12 +43,19 @@
         </div>
         <div class="messages">
           <div class="message" v-for="message in messages" :key="message.id">
-            <div v-if="username === message.sender" class="my-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
-              :id="message.id">
+            <div
+              v-if="username === message.sender"
+              class="my-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
+              :id="message.id"
+            >
               <span class="mb-3 d-block">{{ message.sender }} </span>
               <p class="mb-0">{{ message.message }}</p>
             </div>
-            <div v-else class="user-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4" :id="message.id">
+            <div
+              v-else
+              class="user-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
+              :id="message.id"
+            >
               <span>{{ message.sender }} </span>
               <p class="mb-0">{{ message.message }}</p>
             </div>
@@ -51,10 +69,19 @@
         </div>
         <div class="send-message py-2 gap-1">
           <div class="send-message-content col-10 col-xl-4 h-100">
-            <textarea type="text" class="shadow-none w-full p-2 rounded-2 border-0 h-100" placeholder="Your Messages..."
-              v-model="message" @keyup.enter="handleEnter" id="sendMessage"></textarea>
+            <textarea
+              type="text"
+              class="shadow-none w-full p-2 rounded-2 border-0 h-100"
+              placeholder="Your Messages..."
+              v-model="message"
+              @keyup.enter="handleEnter"
+              id="sendMessage"
+            ></textarea>
           </div>
-          <button class="btn-send h-100 border-0 rounded-2 text-white col-2" @click="sendMessage">
+          <button
+            class="btn-send h-100 border-0 rounded-2 text-white col-2"
+            @click="sendMessage"
+          >
             Send
           </button>
         </div>
@@ -96,8 +123,10 @@ export default {
   },
   computed: {
     isMobile() {
-      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-        window.matchMedia("(max-width: 1023px)").matches;
+      return (
+        /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        window.matchMedia("(max-width: 1023px)").matches
+      );
     },
   },
   methods: {
