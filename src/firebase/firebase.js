@@ -15,6 +15,6 @@ const firebaseConfig = {
 initializeApp(firebaseConfig);
 export const auth = getAuth();
 export const db = getFirestore();
+export const storage = getStorage();
 export const usersColl = collection(db, "users");
 export const messagesColl = collection(db, "messages");
-export const storage = getStorage();

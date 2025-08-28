@@ -11,29 +11,19 @@
               <h3 class="text-white">Chat Room Members</h3>
               <button @click="togglePeople" class="close-people-btn">X</button>
             </div>
-            <input
-              type="text"
-              placeholder="Search..."
-              class="form-control shadow-none border-0"
-            />
+            <input type="text" placeholder="Search..." class="form-control shadow-none border-0" />
             <!-- friends start -->
             <div class="friends-content">
-              <UsersComponent
-                @showUserInfo="showUserInfo"
-                :users="users"
-                :username="username"
-              />
+              <UsersComponent @showUserInfo="showUserInfo" :users="users" :username="username" />
             </div>
             <!-- friends end -->
           </div>
         </div>
         <!-- people end -->
         <div class="head">
-          <div
-            class="head-content d-flex justify-content-between align-items-center p-3"
-          >
+          <div class="head-content d-flex justify-content-between align-items-center p-3">
             <h2 class="text-white" style="letter-spacing: 0px">Chat Room</h2>
-            <div class="d-sm-none bars" @click="togglePeople">
+            <div class="d-lg-none bars" @click="togglePeople">
               <div class="bar"></div>
               <div class="bar"></div>
               <div class="bar"></div>
@@ -42,19 +32,14 @@
         </div>
         <div class="messages">
           <div class="message" v-for="message in messages" :key="message.id">
-            <div
-              v-if="username === message.sender"
-              class="my-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
-              :id="message.id"
-            >
-              {{ message.sender }} <br />{{ message.message }}
+            <div v-if="username === message.sender" class="my-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
+              :id="message.id">
+              <span class="mb-3 d-block">{{ message.sender }} </span>
+              <p class="mb-0">{{ message.message }}</p>
             </div>
-            <div
-              v-else
-              class="user-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
-              :id="message.id"
-            >
-              {{ message.sender }} <br />{{ message.message }}
+            <div v-else class="user-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4" :id="message.id">
+              <span>{{ message.sender }} </span>
+              <p class="mb-0">{{ message.message }}</p>
             </div>
           </div>
         </div>
@@ -64,18 +49,14 @@
             <h2 id="user-name-info" class="text-center mt-5 text-white"></h2>
           </div>
         </div>
-        <div class="send-message">
-          <div class="send-message-content col-11 col-xl-4">
-            <textarea
-              type="text"
-              class="shadow-none"
-              placeholder="Your Messages..."
-              v-model="message"
-              @keyup.enter="sendMessage"
-              id="sendMessage"
-            ></textarea>
-            <i class="fa fa-paper-plane" @click="sendMessage"></i>
+        <div class="send-message py-2 gap-1">
+          <div class="send-message-content col-10 col-xl-4 h-100">
+            <textarea type="text" class="shadow-none w-full p-2 rounded-2 border-0 h-100" placeholder="Your Messages..."
+              v-model="message" @keyup.enter="handleEnter" id="sendMessage"></textarea>
           </div>
+          <button class="btn-send h-100 border-0 rounded-2 text-white col-2" @click="sendMessage">
+            Send
+          </button>
         </div>
       </div>
     </div>
@@ -106,14 +87,19 @@ export default {
   },
   data() {
     return {
-      to: String(),
-      users: Array(),
-      messages: Array(),
-      message: String(),
+      to: "",
+      users: [],
+      messages: [],
+      message: "",
       username: this.$store.state.userName,
     };
   },
-
+  computed: {
+    isMobile() {
+      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        window.matchMedia("(max-width: 1023px)").matches;
+    },
+  },
   methods: {
     togglePeople() {
       $(".people").toggleClass("toggle-people");
@@ -140,9 +126,18 @@ export default {
         $("#spinner").hide();
       }
     },
+    handleEnter(event) {
+      if (!this.isMobile) {
+        if (event.shiftKey) {
+          return;
+        }
+        event.preventDefault();
+        this.sendMessage();
+      }
+    },
     sendMessage() {
       // save the message,sender and the time
-      if (this.message) {
+      if (this.message.trim()) {
         addDoc(messagesColl, {
           message: this.message,
           sender: this.username,
@@ -189,20 +184,21 @@ export default {
 
 <style lang="scss" scoped>
 .toggle-people {
-  position: absolute;
   width: 100%;
   height: 100%;
   left: 0 !important;
   z-index: 3;
 }
+
 .chat {
   position: relative;
+
   .chat-container {
     .grid {
       display: grid;
-      min-height: 94vh;
+      height: calc(100dvh - 60px);
       grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: 70px repeat(3, 1fr) 70px;
+      grid-template-rows: 70px 1fr 70px;
       box-shadow: 0 15px 30px 0px rgb(0 0 0 / 20%);
       background: #fff;
 
@@ -214,6 +210,7 @@ export default {
         background-color: #aeafe8;
         padding: 40px;
         transition: all 0.3s ease-in-out;
+
         .people-content {
           .close-people-btn {
             border: none;
@@ -222,6 +219,7 @@ export default {
             font-size: 25px;
             display: none;
           }
+
           input {
             margin: 30px 0px;
           }
@@ -241,11 +239,13 @@ export default {
         grid-row-start: 1;
         grid-row-end: 2;
         background-color: #43318d8c;
+
         .head-content {
           flex: 1;
 
           .bars {
             cursor: pointer;
+
             .bar {
               display: block;
               height: 3px;
@@ -265,18 +265,19 @@ export default {
         grid-column-end: 6;
         grid-row-start: 2;
         grid-row-end: 5;
-        min-height: 690px;
-        max-height: 765px;
-        overflow-y: scroll;
+        overflow-y: auto;
         transition: all 1.5s ease-in-out;
+
         .message {
           padding: 10px;
+          overflow-wrap: break-word;
 
           .my-message,
           .user-message {
             color: #fff;
             padding: 10px;
             border-radius: 5px 15px 15px 15px;
+            white-space: pre-wrap;
 
             &:last-child {
               animation: popup 0.5s ease-out;
@@ -331,44 +332,40 @@ export default {
       .send-message {
         display: flex;
         align-items: center;
+        justify-content: center;
         grid-column-start: 2;
         grid-column-end: 6;
         grid-row-start: 5;
         grid-row-end: 6;
         background-color: #b3b2c0;
+        padding-left: 30px;
+        padding-right: 30px;
 
         .send-message-content {
           display: flex;
           justify-content: center;
           align-items: center;
           position: relative;
-          margin: 0 auto;
-          // width: 50%;
-          height: 50px;
-          i {
-            position: absolute;
-            right: 15px;
-            top: 25%;
-            font-size: 20px;
-            color: #43318d8c;
-            cursor: pointer;
-          }
+
           textarea {
-            position: absolute;
-            display: block;
             width: 100%;
             background-color: #f5f5f5;
             padding: 8px;
-            height: 40px;
             border-radius: 20px;
             border: 0;
             margin: 0 auto;
             outline: none;
+            resize: none;
 
             &::placeholder {
               color: #000;
             }
           }
+        }
+
+        .btn-send {
+          background-color: #4c2fc9;
+          width: 100px;
         }
       }
     }
@@ -396,18 +393,21 @@ export default {
   background: #555;
 }
 
-@media screen and (max-width: 575px) {
+@media screen and (max-width: 1023px) {
   .grid {
     overflow-x: hidden;
+
     .head,
     .messages,
     .send-message {
       grid-column-start: 1 !important;
+      grid-column: span 1 / -1;
     }
 
     .people {
-      position: absolute;
+      position: fixed;
       left: -1000px;
+      top: 60px;
 
       .people-content {
         .close-people-btn {
