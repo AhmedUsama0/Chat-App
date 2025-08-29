@@ -47,21 +47,22 @@
 </template>
 
 <script>
-import { db, storage } from "@/firebase/firebase";
-import { updateDoc, doc } from "firebase/firestore";
+import { db, storage, auth, usersColl } from "@/firebase/firebase";
+import { updateDoc, doc, query, where, getDocs } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { updateProfile, signOut } from "firebase/auth";
 import $ from "jquery";
 export default {
   name: "NavBar",
 
   data() {
     return {
-      userImage: this.$store.state.userImage,
+      userImage: auth.currentUser.photoURL,
     };
   },
   computed: {
     username() {
-      return this.$store.state.userName;
+      return auth.currentUser.displayName;
     },
   },
   methods: {
@@ -85,17 +86,27 @@ export default {
         this.$emit("change", false);
       });
       // download the image
-      getDownloadURL(img).then((url) => {
+      getDownloadURL(img).then(async (url) => {
         // save the user img in the store
-        this.$store.commit("setUserImage", url);
-        // change picture once the user change it(it doesn't save the changes)
+        updateProfile(auth.currentUser, {
+          photoURL: url,
+        });
+        // // change picture once the user change it(it doesn't save the changes)
         const img = document.getElementById("userImage");
         img.setAttribute("src", url);
 
         // save the img url in the database
-        const userDoc = doc(db, "users", this.$store.state.id);
-        updateDoc(userDoc, {
-          img: url,
+        let q = query(
+          usersColl,
+          where("username", "==", auth.currentUser.displayName)
+        );
+        const userSnapShot = await getDocs(q);
+        userSnapShot.forEach((user) => {
+          updateDoc(user.ref, {
+            img: url,
+          }).then(() => {
+            console.log("Image updated");
+          });
         });
       });
     },
@@ -104,15 +115,20 @@ export default {
     },
     logOut() {
       // get the user document
-      const document = doc(db, "users", this.$store.state.id);
+      const document = doc(db, "users", auth.currentUser.displayName);
       // update the user's status to offline
       updateDoc(document, {
         status: "offline",
       });
-      // set auth to false
-      this.$store.commit("setAuthentication", false);
+
       // redirect to login
-      this.$router.replace({ name: "LogInView" });
+      signOut(auth)
+        .then(() => {
+          this.$router.replace({ name: "LogInView" });
+        })
+        .catch((error) => {
+          console.log(error.message);
+        });
     },
   },
 };
@@ -124,14 +140,12 @@ nav {
   box-shadow: 0 15px 30px 0 rgb(0 0 0 / 20%);
   position: relative;
   width: 100%;
-  // border: 1px solid;
 
   img {
     border-radius: 50%;
   }
 
   .user {
-    // border: 1px solid;
     cursor: pointer;
     width: fit-content;
     span {

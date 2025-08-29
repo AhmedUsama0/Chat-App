@@ -1,6 +1,6 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import store from "../store";
+import { auth } from "@/firebase/firebase";
 
 Vue.use(VueRouter);
 
@@ -16,11 +16,13 @@ const routes = [
     name: "LogInView",
     component: () => import("@/views/LogInView.vue"),
     beforeEnter: (to, from, next) => {
-      if (store.state.authenticated === true) {
-        next({ name: "chat" });
-      } else {
-        next();
-      }
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          next({ name: "chat" });
+        } else {
+          next();
+        }
+      });
     },
   },
 
@@ -33,11 +35,13 @@ const routes = [
     path: "/chat",
     name: "chat",
     beforeEnter: (to, from, next) => {
-      if (store.state.authenticated === false) {
-        next({ name: "LogInView" });
-      } else {
-        next();
-      }
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          next();
+        } else {
+          next({ name: "LogInView" });
+        }
+      });
     },
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route

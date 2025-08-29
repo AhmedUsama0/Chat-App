@@ -1,7 +1,7 @@
 <template>
   <div class="chat">
     <LoadingSpinner />
-    <NavBar @chatColor="changeChatColor" @change="showLoadingSpinner" />
+    <NavBar @change="showLoadingSpinner" />
     <div class="chat-container">
       <div class="grid">
         <!-- people start -->
@@ -17,13 +17,13 @@
               class="form-control shadow-none border-0"
             />
             <!-- friends start -->
-            <div class="friends-content">
+            <!-- <div class="friends-content overflow-y-auto">
               <UsersComponent
                 @showUserInfo="showUserInfo"
                 :users="users"
                 :username="username"
               />
-            </div>
+            </div> -->
             <!-- friends end -->
           </div>
         </div>
@@ -41,29 +41,39 @@
           </div>
         </div>
         <div
-          class="messages"
+          class="messages p-3"
           :style="{ backgroundColor: $store.state.chatColor }"
         >
-          <div class="message" v-for="message in messages" :key="message.id">
+          <template v-for="message in messages">
             <div
-              v-if="username === message.sender"
-              class="my-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
-              :style="{ backgroundColor: $store.state.myMessageColor }"
+              :key="message.id"
+              class="col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4 text-white p-3 rounded-3 mt-3"
+              :class="username !== message.sender ? 'mr-0 ms-auto' : ''"
               :id="message.id"
+              :style="{
+                backgroundColor:
+                  username === message.sender
+                    ? $store.state.myMessageColor
+                    : $store.state.userMessageColor,
+              }"
             >
-              <span class="mb-3 d-block">{{ message.sender }} </span>
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <img
+                  :src="
+                    username === message.sender
+                      ? userImage
+                      : findUserByName(message.sender)?.img
+                  "
+                  alt="userimage"
+                  width="50"
+                  height="50"
+                  class="rounded-circle"
+                />
+                <span>{{ message.sender }} </span>
+              </div>
               <p class="mb-0">{{ message.message }}</p>
             </div>
-            <div
-              v-else
-              class="user-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
-              :style="{ backgroundColor: $store.state.userMessageColor }"
-              :id="message.id"
-            >
-              <span>{{ message.sender }} </span>
-              <p class="mb-0">{{ message.message }}</p>
-            </div>
-          </div>
+          </template>
         </div>
         <div class="developer">
           <div class="developer-content">
@@ -97,8 +107,8 @@
 <script>
 import NavBar from "@/components/NavBar.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import UsersComponent from "@/components/UsersComponent.vue";
-import { usersColl, messagesColl, db } from "@/firebase/firebase";
+// import UsersComponent from "@/components/UsersComponent.vue";
+import { usersColl, messagesColl, db, auth } from "@/firebase/firebase";
 import {
   query,
   addDoc,
@@ -113,7 +123,6 @@ export default {
   name: "ChatView",
   components: {
     NavBar,
-    UsersComponent,
     LoadingSpinner,
   },
   data() {
@@ -122,7 +131,8 @@ export default {
       users: [],
       messages: [],
       message: "",
-      username: this.$store.state.userName,
+      username: auth.currentUser.displayName,
+      userImage: auth.currentUser.photoURL,
     };
   },
   computed: {
@@ -134,6 +144,9 @@ export default {
     },
   },
   methods: {
+    findUserByName(name) {
+      return this.users.find((user) => user.username === name);
+    },
     togglePeople() {
       $(".people").toggleClass("toggle-people");
     },
@@ -196,7 +209,11 @@ export default {
   },
   mounted() {
     // once the user logged in, update the status to online
-    const documentOfLoggedInUser = doc(db, "users", this.$store.state.id);
+    const documentOfLoggedInUser = doc(
+      db,
+      "users",
+      auth.currentUser.displayName
+    );
     updateDoc(documentOfLoggedInUser, {
       status: "online",
     });
@@ -258,8 +275,8 @@ export default {
           }
 
           .friends-content {
-            overflow-y: scroll;
-            height: 600px;
+            max-height: 600px;
+            scrollbar-width: none;
           }
         }
       }
@@ -300,22 +317,15 @@ export default {
         grid-row-end: 5;
         overflow-y: auto;
         transition: all 0.5s ease-in-out;
+        scrollbar-width: none;
 
         .message {
-          padding: 10px;
           overflow-wrap: break-word;
+          white-space: pre-wrap;
+          transition: background-color 0.5s ease-in-out;
 
-          .my-message,
-          .user-message {
-            color: #fff;
-            padding: 10px;
-            border-radius: 5px 15px 15px 15px;
-            white-space: pre-wrap;
-            transition: all 0.5s ease-in-out;
-
-            &:last-child {
-              animation: popup 0.5s ease-out;
-            }
+          &:last-child {
+            animation: popup 0.5s ease-out;
           }
 
           @keyframes popup {
@@ -330,15 +340,6 @@ export default {
             100% {
               transform: scale(1);
             }
-          }
-
-          .my-message {
-            background-color: #4c2fc9;
-          }
-
-          .user-message {
-            background-color: #b3b2c0;
-            float: right;
           }
         }
       }

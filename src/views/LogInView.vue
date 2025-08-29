@@ -40,8 +40,12 @@
 </template>
 
 <script>
-import { usersColl } from "@/firebase/firebase";
-import { getDocs, where, query } from "firebase/firestore";
+import {
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
+import { auth } from "@/firebase/firebase";
 import $ from "jquery";
 export default {
   name: "LogInView",
@@ -53,27 +57,21 @@ export default {
     };
   },
   methods: {
-    async LogIn() {
+    LogIn() {
       $("alert-error").hide();
-      const q = query(
-        usersColl,
-        where("email", "==", this.email),
-        where("password", "==", this.password)
-      );
-      const querySnapShot = await getDocs(q);
-      if (querySnapShot.docs.length > 0) {
-        const username = querySnapShot.docs[0].data().username;
-        const id = querySnapShot.docs[0].id;
-        const img = querySnapShot.docs[0].data().img;
-        this.$store.commit("setAuthentication", true);
-        this.$store.commit("setUserName", username);
-        this.$store.commit("setID", id);
-        this.$store.commit("setUserImage", img);
-        this.$router.push({ name: "chat" });
-      } else {
-        $("#alert-error").text("Email or Password is Incorrect");
-        $("#alert-error").show();
-      }
+      setPersistence(auth, browserLocalPersistence)
+        .then(() => {
+          return signInWithEmailAndPassword(auth, this.email, this.password);
+        })
+        .then(({ user }) => {
+          if (user) {
+            this.$router.push({ name: "chat" });
+          }
+        })
+        .catch(() => {
+          $("#alert-error").text("Email or Password is Incorrect");
+          $("#alert-error").show();
+        });
     },
   },
 };

@@ -60,8 +60,9 @@
 </template>
 
 <script>
-import { usersColl } from "@/firebase/firebase";
-import { addDoc, getDocs, query, where } from "firebase/firestore";
+import { addDoc, usersColl, auth } from "@/firebase/firebase";
+import { getDocs, query, where } from "firebase/firestore";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import $ from "jquery";
 export default {
   name: "RegisterView",
@@ -78,22 +79,8 @@ export default {
   },
 
   methods: {
-    async checkForEmailExist(email) {
-      const q = query(usersColl, where("email", "==", email));
-      const querySnapShot = await getDocs(q);
-      return querySnapShot.docs.length;
-    },
     async checkForUserNameExist(username) {
       const q = query(usersColl, where("username", "==", username));
-      const querySnapShot = await getDocs(q);
-      return querySnapShot.docs.length;
-    },
-    async checkForAccountExist(username, email) {
-      const q = query(
-        usersColl,
-        where("email", "==", email),
-        where("username", "==", username)
-      );
       const querySnapShot = await getDocs(q);
       return querySnapShot.docs.length;
     },
@@ -101,32 +88,30 @@ export default {
       $("#alert-error").hide();
       $("#alert-success").hide();
       if (this.password === this.confirm_password) {
-        const isAccountExist = await this.checkForAccountExist(
-          this.username,
-          this.email
-        );
         const isUserNameExist = await this.checkForUserNameExist(this.username);
-        const isEmailExist = await this.checkForEmailExist(this.email);
-        if (
-          isAccountExist === 0 &&
-          isUserNameExist === 0 &&
-          isEmailExist === 0
-        ) {
-          addDoc(usersColl, {
-            username: this.username,
-            email: this.email,
-            password: this.password,
-            status: "offline",
-            img: "https://www.freeiconspng.com/uploads/male-icon-19.png",
-          }).then(() => {
+        if (isUserNameExist === 0) {
+          try {
+            const { user } = await createUserWithEmailAndPassword(
+              auth,
+              this.email,
+              this.password
+            );
+            await updateProfile(user, {
+              displayName: this.username,
+              photoURL: "https://www.freeiconspng.com/uploads/male-icon-19.png",
+            });
+            // @TODO problem with user being added to collection
+            await addDoc(usersColl, {
+              username: this.username,
+              status: "offline",
+              img: "https://www.freeiconspng.com/uploads/male-icon-19.png",
+            });
+
             $("#alert-success").show();
-          });
-        } else if (isAccountExist > 0) {
-          $("#alert-error").text("Account is already exist");
-          $("#alert-error").show();
-        } else if (isEmailExist > 0) {
-          $("#alert-error").text("Email is already exist");
-          $("#alert-error").show();
+          } catch (error) {
+            $("#alert-error").text("Email is already exist");
+            $("#alert-error").show();
+          }
         } else if (isUserNameExist > 0) {
           $("#alert-error").text("Username is already exist");
           $("#alert-error").show();

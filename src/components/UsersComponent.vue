@@ -72,7 +72,6 @@ export default {
 
     .img-container,
     .img-container2 {
-      // border: 2px solid;
       width: fit-content;
       display: flex;
       align-items: center;
@@ -81,7 +80,6 @@ export default {
       cursor: pointer;
       .img-icon {
         position: relative;
-        // border: 1px solid;
         .green-icon {
           background-color: green;
         }
