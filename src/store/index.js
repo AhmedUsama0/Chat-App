@@ -15,6 +15,9 @@ export default new Vuex.Store({
     userName: String(),
     id: String(),
     userImage: "https://www.freeiconspng.com/uploads/male-icon-19.png",
+    chatColor: "#efeef8",
+    myMessageColor: "#4c2fc9",
+    userMessageColor: "#b3b2c0",
   },
   getters: {},
   mutations: {
@@ -29,6 +32,15 @@ export default new Vuex.Store({
     },
     setUserImage(state, userImage) {
       state.userImage = userImage;
+    },
+    setChatColor(state, color) {
+      state.chatColor = color;
+    },
+    setMyMessageColor(state, color) {
+      state.myMessageColor = color;
+    },
+    setUserMessageColor(state, color) {
+      state.userMessageColor = color;
     },
   },
   actions: {},

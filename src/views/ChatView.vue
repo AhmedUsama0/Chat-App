@@ -1,8 +1,7 @@
 <template>
-  <!-- /* eslint-disable */ -->
   <div class="chat">
     <LoadingSpinner />
-    <NavBar @change="showLoadingSpinner" />
+    <NavBar @chatColor="changeChatColor" @change="showLoadingSpinner" />
     <div class="chat-container">
       <div class="grid">
         <!-- people start -->
@@ -41,11 +40,15 @@
             </div>
           </div>
         </div>
-        <div class="messages">
+        <div
+          class="messages"
+          :style="{ backgroundColor: $store.state.chatColor }"
+        >
           <div class="message" v-for="message in messages" :key="message.id">
             <div
               v-if="username === message.sender"
               class="my-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
+              :style="{ backgroundColor: $store.state.myMessageColor }"
               :id="message.id"
             >
               <span class="mb-3 d-block">{{ message.sender }} </span>
@@ -54,6 +57,7 @@
             <div
               v-else
               class="user-message col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4"
+              :style="{ backgroundColor: $store.state.userMessageColor }"
               :id="message.id"
             >
               <span>{{ message.sender }} </span>
@@ -295,7 +299,7 @@ export default {
         grid-row-start: 2;
         grid-row-end: 5;
         overflow-y: auto;
-        transition: all 1.5s ease-in-out;
+        transition: all 0.5s ease-in-out;
 
         .message {
           padding: 10px;
@@ -307,6 +311,7 @@ export default {
             padding: 10px;
             border-radius: 5px 15px 15px 15px;
             white-space: pre-wrap;
+            transition: all 0.5s ease-in-out;
 
             &:last-child {
               animation: popup 0.5s ease-out;

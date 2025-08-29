@@ -17,6 +17,30 @@
           />
         </label>
       </li>
+      <div class="p-2 d-flex align-items-center justify-content-between gap-2">
+        <span>Chat</span>
+        <input
+          @change="changeChatColor"
+          :value="$store.state.chatColor"
+          type="color"
+        />
+      </div>
+      <div class="p-2 d-flex align-items-center justify-content-between gap-2">
+        <span>My Message</span>
+        <input
+          @change="changeMyMessageColor"
+          :value="$store.state.myMessageColor"
+          type="color"
+        />
+      </div>
+      <div class="p-2 d-flex align-items-center justify-content-between gap-2">
+        <span>User Message</span>
+        <input
+          @change="changeUserMessage"
+          :value="$store.state.userMessageColor"
+          type="color"
+        />
+      </div>
       <li @click="logOut">LogOut</li>
     </ul>
   </nav>
@@ -41,6 +65,15 @@ export default {
     },
   },
   methods: {
+    changeChatColor(event) {
+      this.$store.commit("setChatColor", event.target.value);
+    },
+    changeMyMessageColor(event) {
+      this.$store.commit("setMyMessageColor", event.target.value);
+    },
+    changeUserMessage(event) {
+      this.$store.commit("setUserMessageColor", event.target.value);
+    },
     async changeProfilePicture(e) {
       // emit an event with value true to show the LoadingSpinner
       this.$emit("change", true);
@@ -111,6 +144,7 @@ nav {
     background-color: #f9f9f9;
     max-width: 200px;
     position: absolute;
+    z-index: 20;
     border-radius: 5px;
     display: none;
     li {
