@@ -1,8 +1,21 @@
 <template>
   <nav>
-    <div class="user" @click="showMenu">
-      <img :src="userImage" alt="" width="50px" height="50px" id="userImage" />
-      <span>{{ username }}</span>
+    <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center flex-fill gap-2" @click="showMenu">
+        <img
+          :src="userImage"
+          alt=""
+          width="50px"
+          height="50px"
+          id="userImage"
+        />
+        <span>{{ username }}</span>
+      </div>
+      <i
+        @click="$emit('openPeople', true)"
+        class="d-lg-none fa fa-bars fs-4 p-2"
+        aria-hidden="true"
+      ></i>
     </div>
     <ul id="menu">
       <li>
@@ -145,13 +158,6 @@ nav {
     border-radius: 50%;
   }
 
-  .user {
-    cursor: pointer;
-    width: fit-content;
-    span {
-      margin-left: 5px;
-    }
-  }
   ul {
     list-style-type: none;
     padding: 0px;

@@ -1,15 +1,17 @@
 <template>
   <div class="chat">
     <LoadingSpinner />
-    <NavBar @change="showLoadingSpinner" />
+    <NavBar @change="showLoadingSpinner" @openPeople="isPeopleOpened = true" />
     <div class="chat-container">
       <div class="grid">
         <!-- people start -->
-        <div class="people">
+        <div class="people" :class="isPeopleOpened ? 'toggle-people' : ''">
           <div class="people-content">
             <div class="d-flex justify-content-between align-items-center">
               <h3 class="text-white">Chat Room Members</h3>
-              <button @click="togglePeople" class="close-people-btn">X</button>
+              <button @click="isPeopleOpened = false" class="close-people-btn">
+                X
+              </button>
             </div>
             <input
               type="text"
@@ -28,18 +30,18 @@
           </div>
         </div>
         <!-- people end -->
-        <div class="head">
+        <!-- <div class="head">
           <div
             class="head-content d-flex justify-content-between align-items-center p-3"
           >
             <h2 class="text-white" style="letter-spacing: 0px">Chat Room</h2>
-            <div class="d-lg-none bars" @click="togglePeople">
+            <div class="d-lg-none bars" @click="isPeopleOpened = true">
               <div class="bar"></div>
               <div class="bar"></div>
               <div class="bar"></div>
             </div>
           </div>
-        </div>
+        </div> -->
         <div
           class="messages p-3"
           :style="{ backgroundColor: $store.state.chatColor }"
@@ -47,7 +49,7 @@
           <template v-for="message in messages">
             <div
               :key="message.id"
-              class="col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4 text-white p-3 rounded-3 mt-3"
+              class="message position-relative col-12 col-md-8 col-lg-7 col-xl-6 col-xxl-4 text-white p-3 rounded-3 mt-3"
               :class="username !== message.sender ? 'mr-0 ms-auto' : ''"
               :id="message.id"
               :style="{
@@ -71,7 +73,19 @@
                 />
                 <span>{{ message.sender }} </span>
               </div>
-              <p class="mb-0">{{ message.message }}</p>
+              <p class="mb-3">{{ message.message }}</p>
+              <span class="time position-absolute"
+                >{{
+                  message.createdAt.toDate().toLocaleString("en-Us", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                }}
+              </span>
             </div>
           </template>
         </div>
@@ -89,7 +103,7 @@
               placeholder="Your Messages..."
               v-model="message"
               @keyup.enter="handleEnter"
-              id="sendMessage"
+              ref="messageArea"
             ></textarea>
           </div>
           <button
@@ -133,6 +147,7 @@ export default {
       message: "",
       username: auth.currentUser.displayName,
       userImage: auth.currentUser.photoURL,
+      isPeopleOpened: false,
     };
   },
   computed: {
@@ -146,9 +161,6 @@ export default {
   methods: {
     findUserByName(name) {
       return this.users.find((user) => user.username === name);
-    },
-    togglePeople() {
-      $(".people").toggleClass("toggle-people");
     },
     showUserInfo(userObject) {
       if ($(".developer").css("display") === "none") {
@@ -190,6 +202,7 @@ export default {
           createdAt: serverTimestamp(),
         });
         this.message = "";
+        this.$refs.messageArea.focus();
       }
     },
     showMessages() {
@@ -234,10 +247,7 @@ export default {
 
 <style lang="scss" scoped>
 .toggle-people {
-  width: 100%;
-  height: 100%;
   left: 0 !important;
-  z-index: 3;
 }
 
 .chat {
@@ -313,7 +323,7 @@ export default {
         background-color: #efeef8;
         grid-column-start: 2;
         grid-column-end: 6;
-        grid-row-start: 2;
+        grid-row-start: 1;
         grid-row-end: 5;
         overflow-y: auto;
         transition: all 0.5s ease-in-out;
@@ -322,10 +332,13 @@ export default {
         .message {
           overflow-wrap: break-word;
           white-space: pre-wrap;
-          transition: background-color 0.5s ease-in-out;
+          transition: all 0.5s ease-in-out;
+          animation: popup 0.5s ease-out;
 
-          &:last-child {
-            animation: popup 0.5s ease-out;
+          .time {
+            font-size: 12px;
+            bottom: 8px;
+            right: 8px;
           }
 
           @keyframes popup {
@@ -443,6 +456,9 @@ export default {
       position: fixed;
       left: -1000px;
       top: 60px;
+      z-index: 10000;
+      width: 100%;
+      height: 100vh;
 
       .people-content {
         .close-people-btn {
