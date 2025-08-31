@@ -45,7 +45,8 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
-import { auth } from "@/firebase/firebase";
+import { auth, db } from "@/firebase/firebase";
+import { updateDoc, doc } from "firebase/firestore";
 import $ from "jquery";
 export default {
   name: "LogInView",
@@ -65,7 +66,12 @@ export default {
         })
         .then(({ user }) => {
           if (user) {
-            this.$router.push({ name: "chat" });
+            const userRef = doc(db, "users", user.uid);
+            updateDoc(userRef, {
+              status: "online",
+            }).then(() => {
+              this.$router.push({ name: "chat" });
+            });
           }
         })
         .catch(() => {
@@ -96,7 +102,6 @@ export default {
       border-radius: 15px;
       padding: 15px;
       min-height: 500px;
-      // rgb(0 0 0 / 20%) is equavliant to rgba(0,0,0,.2)
       box-shadow: 0 15px 30px 0px rgb(0 0 0 / 20%);
 
       form {

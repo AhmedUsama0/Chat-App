@@ -1,13 +1,14 @@
 <template>
   <nav>
-    <div class="d-flex align-items-center">
-      <div class="d-flex align-items-center flex-fill gap-2" @click="showMenu">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="user d-flex align-items-center gap-2" @click="showMenu">
         <img
           :src="userImage"
-          alt=""
+          alt="userimage"
           width="50px"
           height="50px"
           id="userImage"
+          class="rounded-circle"
         />
         <span>{{ username }}</span>
       </div>
@@ -23,7 +24,7 @@
           Change Profile Picture
           <input
             type="file"
-            style="display: none"
+            class="d-none"
             id="pfp"
             @change="changeProfilePicture"
             accept="image/jpg, image/png, image/jpeg"
@@ -60,8 +61,8 @@
 </template>
 
 <script>
-import { db, storage, auth, usersColl } from "@/firebase/firebase";
-import { updateDoc, doc, query, where, getDocs } from "firebase/firestore";
+import { db, storage, auth } from "@/firebase/firebase";
+import { updateDoc, doc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { updateProfile, signOut } from "firebase/auth";
 import $ from "jquery";
@@ -109,17 +110,9 @@ export default {
         img.setAttribute("src", url);
 
         // save the img url in the database
-        let q = query(
-          usersColl,
-          where("username", "==", auth.currentUser.displayName)
-        );
-        const userSnapShot = await getDocs(q);
-        userSnapShot.forEach((user) => {
-          updateDoc(user.ref, {
-            img: url,
-          }).then(() => {
-            console.log("Image updated");
-          });
+        const user = doc(db, "users", auth.currentUser.uid);
+        updateDoc(user, {
+          img: url,
         });
       });
     },
@@ -128,7 +121,7 @@ export default {
     },
     logOut() {
       // get the user document
-      const document = doc(db, "users", auth.currentUser.displayName);
+      const document = doc(db, "users", auth.currentUser.uid);
       // update the user's status to offline
       updateDoc(document, {
         status: "offline",
@@ -154,8 +147,9 @@ nav {
   position: relative;
   width: 100%;
 
-  img {
-    border-radius: 50%;
+  .user {
+    cursor: pointer;
+    width: fit-content;
   }
 
   ul {

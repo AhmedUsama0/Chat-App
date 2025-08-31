@@ -60,65 +60,83 @@
 </template>
 
 <script>
-import { addDoc, usersColl, auth } from "@/firebase/firebase";
-import { getDocs, query, where } from "firebase/firestore";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { usersColl, auth } from "@/firebase/firebase";
+import { getDocs, query, where, setDoc, doc } from "firebase/firestore";
+import {
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
 import $ from "jquery";
 export default {
   name: "RegisterView",
   data() {
     return {
-      username: String(),
-      email: String(),
-      password: String(),
-      confirm_password: String(),
-      isAccountExist: Number(),
-      isUserNameExist: Number(),
-      isEmailExist: Number(),
+      username: "",
+      email: "",
+      password: "",
+      confirm_password: "",
+      isUserNameExist: false,
     };
   },
 
   methods: {
-    async checkForUserNameExist(username) {
-      const q = query(usersColl, where("username", "==", username));
+    async checkForUserNameExist() {
+      const q = query(
+        usersColl,
+        where("username", "==", this.username.trim().toLowerCase())
+      );
       const querySnapShot = await getDocs(q);
-      return querySnapShot.docs.length;
+
+      return querySnapShot.docs.length > 0;
     },
+
     async Register() {
       $("#alert-error").hide();
       $("#alert-success").hide();
-      if (this.password === this.confirm_password) {
-        const isUserNameExist = await this.checkForUserNameExist(this.username);
-        if (isUserNameExist === 0) {
-          try {
-            const { user } = await createUserWithEmailAndPassword(
-              auth,
-              this.email,
-              this.password
-            );
-            await updateProfile(user, {
-              displayName: this.username,
-              photoURL: "https://www.freeiconspng.com/uploads/male-icon-19.png",
-            });
-            // @TODO problem with user being added to collection
-            await addDoc(usersColl, {
-              username: this.username,
-              status: "offline",
-              img: "https://www.freeiconspng.com/uploads/male-icon-19.png",
-            });
 
-            $("#alert-success").show();
-          } catch (error) {
-            $("#alert-error").text("Email is already exist");
-            $("#alert-error").show();
-          }
-        } else if (isUserNameExist > 0) {
-          $("#alert-error").text("Username is already exist");
-          $("#alert-error").show();
+      if (this.password !== this.confirm_password) {
+        $("#alert-error").text("Passwords Not Matched").show();
+        return;
+      }
+
+      const isUserNameExist = await this.checkForUserNameExist();
+
+      if (isUserNameExist) {
+        $("#alert-error").text("Username is already exist").show();
+        return;
+      }
+
+      try {
+        const { user } = await createUserWithEmailAndPassword(
+          auth,
+          this.email,
+          this.password
+        );
+        await updateProfile(user, {
+          displayName: this.username,
+          photoURL: "https://www.freeiconspng.com/uploads/male-icon-19.png",
+        });
+        await setDoc(doc(usersColl, user.uid), {
+          username: this.username,
+          status: "offline",
+          img: "https://www.freeiconspng.com/uploads/male-icon-19.png",
+        });
+        await signOut(auth);
+        $("#alert-success").show();
+      } catch (error) {
+        const code = error?.code;
+        let msg = "";
+
+        if (code === "auth/email-already-in-use") {
+          msg = "Email already exists.";
+        } else if (code === "auth/weak-password") {
+          msg = "Password should be at least 6 characters.";
+        } else {
+          msg = "Something went wrong. Please contact us.";
         }
-      } else {
-        $("#alert-error").text("Passwords Not Matched");
-        $("#alert-error").show();
+
+        $("#alert-error").text(msg).show();
       }
     },
   },
@@ -152,7 +170,6 @@ export default {
       border-radius: 15px;
       padding: 15px;
       min-height: 500px;
-      // rgb(0 0 0 / 20%) is equavliant to rgba(0,0,0,.2)
       box-shadow: 0 15px 50px 0px rgb(0 0 0 / 20%);
 
       form {

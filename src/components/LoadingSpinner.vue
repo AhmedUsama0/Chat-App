@@ -1,6 +1,6 @@
 <template>
-  <div class="spinner" id="spinner">
-    <div>Loading</div>
+  <div class="spinner-container" id="spinner">
+    <div class="spinner"></div>
   </div>
 </template>
 
@@ -11,8 +11,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.spinner {
+.spinner-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: none;
+}
+
+.spinner {
+  display: block;
   justify-content: center;
   align-items: center;
   position: absolute;

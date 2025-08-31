@@ -11,24 +11,16 @@ export default new Vuex.Store({
     }),
   ],
   state: {
+    authenticated: false,
     chatColor: "#efeef8",
     myMessageColor: "#4c2fc9",
     userMessageColor: "#b3b2c0",
   },
   getters: {},
   mutations: {
-    // setAuthentication(state, status) {
-    //   state.authenticated = status;
-    // },
-    // setUserName(state, userName) {
-    //   state.userName = userName;
-    // },
-    // setID(state, id) {
-    //   state.id = id;
-    // },
-    // setUserImage(state, userImage) {
-    //   state.userImage = userImage;
-    // },
+    setAuthentication(state, status) {
+      state.authenticated = status;
+    },
     setChatColor(state, color) {
       state.chatColor = color;
     },

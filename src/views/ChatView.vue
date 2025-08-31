@@ -19,29 +19,16 @@
               class="form-control shadow-none border-0"
             />
             <!-- friends start -->
-            <!-- <div class="friends-content overflow-y-auto">
+            <div class="friends-content overflow-y-auto">
               <UsersComponent
                 @showUserInfo="showUserInfo"
                 :users="users"
                 :username="username"
               />
-            </div> -->
+            </div>
             <!-- friends end -->
           </div>
         </div>
-        <!-- people end -->
-        <!-- <div class="head">
-          <div
-            class="head-content d-flex justify-content-between align-items-center p-3"
-          >
-            <h2 class="text-white" style="letter-spacing: 0px">Chat Room</h2>
-            <div class="d-lg-none bars" @click="isPeopleOpened = true">
-              <div class="bar"></div>
-              <div class="bar"></div>
-              <div class="bar"></div>
-            </div>
-          </div>
-        </div> -->
         <div
           class="messages p-3"
           :style="{ backgroundColor: $store.state.chatColor }"
@@ -73,10 +60,26 @@
                 />
                 <span>{{ message.sender }} </span>
               </div>
-              <p class="mb-3">{{ message.message }}</p>
+              <p v-if="message.message" class="mb-3">{{ message.message }}</p>
+              <div
+                class="d-flex flex-wrap gap-1"
+                v-if="message.attachments.length > 0"
+              >
+                <template v-for="attachment in message.attachments">
+                  <img
+                    :key="attachment"
+                    :src="attachment"
+                    alt="attachment"
+                    width="150"
+                    height="150"
+                    class="py-3 h-full"
+                    loading="lazy"
+                  />
+                </template>
+              </div>
               <span class="time position-absolute"
                 >{{
-                  message.createdAt.toDate().toLocaleString("en-Us", {
+                  message.createdAt?.toDate().toLocaleString("en-Us", {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
@@ -96,15 +99,27 @@
           </div>
         </div>
         <div class="send-message py-2 gap-1">
-          <div class="send-message-content col-10 col-xl-4 h-100">
+          <div class="send-message-content col-10 col-xl-4 rounded-2">
+            <div ref="attachmentsPreview"></div>
             <textarea
               type="text"
-              class="shadow-none w-full p-2 rounded-2 border-0 h-100"
+              class="shadow-none w-full p-2 rounded-2 border-0"
               placeholder="Your Messages..."
               v-model="message"
               @keyup.enter="handleEnter"
               ref="messageArea"
             ></textarea>
+            <label class="attachment" for="attachment">
+              <i class="fa fa-paperclip" aria-hidden="true"></i>
+              <input
+                @change="addImage"
+                type="file"
+                accept=" image/*"
+                multiple
+                class="d-none"
+                id="attachment"
+              />
+            </label>
           </div>
           <button
             class="btn-send h-100 border-0 rounded-2 text-white col-2"
@@ -121,23 +136,23 @@
 <script>
 import NavBar from "@/components/NavBar.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-// import UsersComponent from "@/components/UsersComponent.vue";
-import { usersColl, messagesColl, db, auth } from "@/firebase/firebase";
+import UsersComponent from "@/components/UsersComponent.vue";
+import { usersColl, messagesColl, auth, storage } from "@/firebase/firebase";
 import {
   query,
   addDoc,
   onSnapshot,
   serverTimestamp,
   orderBy,
-  doc,
-  updateDoc,
 } from "firebase/firestore";
 import $ from "jquery";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 export default {
   name: "ChatView",
   components: {
     NavBar,
     LoadingSpinner,
+    UsersComponent,
   },
   data() {
     return {
@@ -145,6 +160,7 @@ export default {
       users: [],
       messages: [],
       message: "",
+      attachments: [],
       username: auth.currentUser.displayName,
       userImage: auth.currentUser.photoURL,
       isPeopleOpened: false,
@@ -179,7 +195,7 @@ export default {
     },
     showLoadingSpinner(value) {
       if (value === true) {
-        $("#spinner").css("display", "flex");
+        $("#spinner").css("display", "block");
       } else {
         $("#spinner").hide();
       }
@@ -193,17 +209,40 @@ export default {
         this.sendMessage();
       }
     },
-    sendMessage() {
-      // save the message,sender and the time
-      if (this.message.trim()) {
-        addDoc(messagesColl, {
-          message: this.message,
-          sender: this.username,
-          createdAt: serverTimestamp(),
-        });
-        this.message = "";
-        this.$refs.messageArea.focus();
+    async sendMessage() {
+      try {
+        if (this.attachments.length > 0) {
+          this.attachments = await Promise.all(
+            this.attachments.map(async (attachment) => {
+              const imageRef = ref(storage, attachment.name);
+              await uploadBytes(imageRef, attachment);
+              return getDownloadURL(imageRef);
+            })
+          );
+        }
+
+        if (this.message.trim() || this.attachments.length > 0) {
+          addDoc(messagesColl, {
+            message: this.message,
+            attachments: this.attachments,
+            sender: this.username,
+            createdAt: serverTimestamp(),
+          });
+          this.message = "";
+          this.$refs.messageArea.focus();
+
+          if (this.$refs.attachmentsPreview.children.length > 0) {
+            this.$refs.attachmentsPreview.innerHTML = "";
+            this.$refs.attachmentsPreview.classList.remove(
+              "attachments-preview"
+            );
+          }
+        }
+      } catch (error) {
+        console.log(error.message);
       }
+
+      // save the message,sender and the time
     },
     showMessages() {
       // sort the messages collection be time creation in descending order
@@ -219,17 +258,21 @@ export default {
         });
       });
     },
+    async addImage(e) {
+      this.attachments = Array.from(e.target.files);
+
+      this.attachments.forEach((attachment) => {
+        const image = document.createElement("img");
+        image.src = URL.createObjectURL(attachment);
+        image.alt = "attachment";
+        image.classList.add("image-preview");
+        image.setAttribute("style", "max-width:100%;border-radius:4px");
+        this.$refs.attachmentsPreview.append(image);
+        this.$refs.attachmentsPreview.classList.add("attachments-preview");
+      });
+    },
   },
   mounted() {
-    // once the user logged in, update the status to online
-    const documentOfLoggedInUser = doc(
-      db,
-      "users",
-      auth.currentUser.displayName
-    );
-    updateDoc(documentOfLoggedInUser, {
-      status: "online",
-    });
     // once the user logged in show the messages
     this.showMessages();
     // sort the user collection by status in descending order
@@ -391,23 +434,40 @@ export default {
 
         .send-message-content {
           display: flex;
+          flex-direction: column;
+          padding: 5px 10px;
+          row-gap: 5px;
           justify-content: center;
-          align-items: center;
           position: relative;
+          background-color: white;
 
           textarea {
             width: 100%;
-            background-color: #f5f5f5;
-            padding: 8px;
+            scrollbar-width: none;
             border-radius: 20px;
             border: 0;
             margin: 0 auto;
             outline: none;
             resize: none;
+            height: 100%;
 
             &::placeholder {
               color: #000;
             }
+          }
+
+          .attachments-preview {
+            display: flex;
+            height: 50px;
+            overflow-x: auto;
+            column-gap: 10px;
+            width: 100%;
+            scrollbar-width: thin;
+          }
+
+          .attachment {
+            cursor: pointer;
+            width: fit-content;
           }
         }
 
